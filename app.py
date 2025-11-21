@@ -26,10 +26,11 @@ st.markdown("""
         font-weight: bold;
     }
     .sub-header {
-        font-size: 1.5rem;
-        color: #2e86ab;
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 0.5rem;
         margin-bottom: 1rem;
-        font-weight: 600;
+        border-left: 4px solid #1f77b4;
     }
     .info-box {
         background-color: #f0f2f6;
@@ -544,4 +545,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

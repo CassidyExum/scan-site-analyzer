@@ -206,16 +206,25 @@ def create_station_overview(nearby_stations_df):
                         elif sensor_key == 'soil_moisture_40':
                             soil_moisture_min_40 = f"{clean_values.min():.1f}%"
                         elif sensor_key == 'soil_temp_20':
-                            soil_temp_max_20 = f"{clean_values.max():.1f}°F"
+                            # Convert Fahrenheit to Celsius: (°F - 32) × 5/9
+                            temp_f = clean_values.max()
+                            temp_c = (temp_f - 32) * 5/9
+                            soil_temp_max_20 = f"{temp_c:.1f}°C"
                         elif sensor_key == 'soil_temp_40':
-                            soil_temp_max_40 = f"{clean_values.max():.1f}°F"
+                            # Convert Fahrenheit to Celsius: (°F - 32) × 5/9
+                            temp_f = clean_values.max()
+                            temp_c = (temp_f - 32) * 5/9
+                            soil_temp_max_40 = f"{temp_c:.1f}°C"
                         elif sensor_key == 'air_temp_max':
-                            ambient_temp_max = f"{clean_values.max():.1f}°F"
+                            # Convert Fahrenheit to Celsius: (°F - 32) × 5/9
+                            temp_f = clean_values.max()
+                            temp_c = (temp_f - 32) * 5/9
+                            ambient_temp_max = f"{temp_c:.1f}°C"
         
         overview_data.append({
             'SCAN Site': station_name,
             'Elevation': station['Elevation'],
-            'Distance to Installation': station['Distance to Installation'],
+            'Distance to Installation (Miles)': station['Distance to Installation'],
             'Soil Moisture Minimum 20in': soil_moisture_min_20,
             'Soil Moisture Minimum 40in': soil_moisture_min_40,
             'Soil Temp Maximum 20in': soil_temp_max_20,
@@ -225,6 +234,7 @@ def create_station_overview(nearby_stations_df):
         
         progress_bar.progress((i + 1) / len(nearby_stations_df))
     
+    status_text.text("Complete!")
     progress_bar.empty()
     
     return pd.DataFrame(overview_data)
@@ -284,33 +294,37 @@ def plot_soil_temp(soil_temp_20_df, soil_temp_40_df, station_name):
     values_20 = pd.to_numeric(soil_temp_20_df['value'], errors='coerce').dropna()
     values_40 = pd.to_numeric(soil_temp_40_df['value'], errors='coerce').dropna()
     
-    clean_20 = remove_outliers(values_20)
-    clean_40 = remove_outliers(values_40)
+    # Convert Fahrenheit to Celsius
+    values_20_c = (values_20 - 32) * 5/9
+    values_40_c = (values_40 - 32) * 5/9
+    
+    clean_20 = remove_outliers(values_20_c)
+    clean_40 = remove_outliers(values_40_c)
     
     max_20 = clean_20.max() if not clean_20.empty else None
     max_40 = clean_40.max() if not clean_40.empty else None
     
-    ax.plot(soil_temp_20_df['date'], values_20, 'b-', linewidth=1, alpha=0.7, label='Soil Temp -20"')
-    ax.plot(soil_temp_40_df['date'], values_40, 'r-', linewidth=1, alpha=0.7, label='Soil Temp -40"')
+    ax.plot(soil_temp_20_df['date'], values_20_c, 'b-', linewidth=1, alpha=0.7, label='Soil Temp -20"')
+    ax.plot(soil_temp_40_df['date'], values_40_c, 'r-', linewidth=1, alpha=0.7, label='Soil Temp -40"')
     
     if max_20 is not None:
-        max_date_20 = soil_temp_20_df.loc[values_20.idxmax(), 'date']
-        ax.annotate(f'Max: {max_20:.1f}°F', 
+        max_date_20 = soil_temp_20_df.loc[values_20_c.idxmax(), 'date']
+        ax.annotate(f'Max: {max_20:.1f}°C', 
                    xy=(max_date_20, max_20), 
                    xytext=(10, 10), textcoords='offset points',
                    bbox=dict(boxstyle='round,pad=0.3', facecolor='blue', alpha=0.7),
                    arrowprops=dict(arrowstyle='->', color='blue'))
     
     if max_40 is not None:
-        max_date_40 = soil_temp_40_df.loc[values_40.idxmax(), 'date']
-        ax.annotate(f'Max: {max_40:.1f}°F', 
+        max_date_40 = soil_temp_40_df.loc[values_40_c.idxmax(), 'date']
+        ax.annotate(f'Max: {max_40:.1f}°C', 
                    xy=(max_date_40, max_40), 
                    xytext=(10, -20), textcoords='offset points',
                    bbox=dict(boxstyle='round,pad=0.3', facecolor='red', alpha=0.7),
                    arrowprops=dict(arrowstyle='->', color='red'))
     
     ax.set_title(f'{station_name} - Soil Temperature Maximum', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Soil Temperature (°F)', fontsize=12)
+    ax.set_ylabel('Soil Temperature (°C)', fontsize=12)  # Updated to °C
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
@@ -326,21 +340,24 @@ def plot_ambient_temp(air_temp_max_df, station_name):
     air_temp_max_df['date'] = pd.to_datetime(air_temp_max_df['date'])
     values = pd.to_numeric(air_temp_max_df['value'], errors='coerce').dropna()
     
-    clean_values = remove_outliers(values)
+    # Convert Fahrenheit to Celsius
+    values_c = (values - 32) * 5/9
+    
+    clean_values = remove_outliers(values_c)
     max_temp = clean_values.max() if not clean_values.empty else None
     
-    ax.plot(air_temp_max_df['date'], values, 'b-', linewidth=1, alpha=0.7, label='Air Temperature Max')
+    ax.plot(air_temp_max_df['date'], values_c, 'b-', linewidth=1, alpha=0.7, label='Air Temperature Max')
     
     if max_temp is not None:
-        max_date = air_temp_max_df.loc[values.idxmax(), 'date']
-        ax.annotate(f'Max: {max_temp:.1f}°F', 
+        max_date = air_temp_max_df.loc[values_c.idxmax(), 'date']
+        ax.annotate(f'Max: {max_temp:.1f}°C', 
                    xy=(max_date, max_temp), 
                    xytext=(10, 10), textcoords='offset points',
                    bbox=dict(boxstyle='round,pad=0.3', facecolor='blue', alpha=0.7),
                    arrowprops=dict(arrowstyle='->', color='blue'))
     
     ax.set_title(f'{station_name} - Ambient Air Temperature Maximum', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Air Temperature (°F)', fontsize=12)
+    ax.set_ylabel('Air Temperature (°C)', fontsize=12)  # Updated to °C
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
@@ -553,6 +570,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

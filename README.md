@@ -1,4 +1,3 @@
-# scan-site-analyzer
 # 🌱 SCAN Site Analyzer
 
 A Streamlit web application for analyzing USDA SCAN (Soil Climate Analysis Network) site data. Find the closest soil and climate monitoring stations, analyze soil moisture, temperature data, and generate professional reports.
@@ -13,14 +12,29 @@ A Streamlit web application for analyzing USDA SCAN (Soil Climate Analysis Netwo
 
 ## 📋 Overview
 
-The SCAN Site Analyzer helps farmers, researchers, and environmental professionals quickly access and analyze data from the USDA's Soil Climate Analysis Network. The app provides:
+The SCAN Site Analyzer helps farmers, researchers, and environmental professionals quickly access and analyze data from the USDA's National Weather and Climate Center Soil Climate Analysis Network. The app provides:
 
 - **Location-based SCAN site discovery**
 - **Soil moisture analysis** at 20" and 40" depths
 - **Soil temperature monitoring** at multiple depths
 - **Ambient temperature data**
-- **Interactive visualizations**
+- **Interactive visualizations with min/max callouts**
 - **Data export capabilities**
+- **Professional reporting**
+
+## 🆕 Latest Features
+
+### 🎯 Enhanced User Experience
+- **One-click search** - No automatic reloading, data loads only when requested
+- **Smart caching** - All data cached for fast station switching
+- **Single download** - Download all plots as a ZIP file
+- **Professional styling** - Clean, consistent interface
+
+### 📊 Advanced Analytics
+- **Outlier detection** - Automatic filtering of anomalous data points
+- **Min/Max callouts** - Visual annotations on plots
+- **Multi-depth analysis** - Compare 20" and 40" depth data
+- **Time-series visualization** - Historical data trends
 
 ## 🛠️ Installation
 

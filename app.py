@@ -544,6 +544,7 @@ def main():
         - Lat + Long of Project Site
 
         **Outputs**
+        - Elevation of each SCAN site
         - Soil moisture at 20" and 40" depths
         - Soil temperature at 20" and 40" depths  
         - Ambient air temperature
@@ -552,6 +553,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

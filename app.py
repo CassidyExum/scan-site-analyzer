@@ -35,7 +35,6 @@ st.markdown("""
         padding: 1rem;
         border-radius: 0.5rem;
         margin-bottom: 1rem;
-        border-left: 4px solid #1f77b4;
     }
     .logo-container {
         text-align: center;
@@ -565,5 +564,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

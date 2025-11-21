@@ -5,16 +5,16 @@ from math import radians, sin, cos, sqrt, atan2
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
+import io
 
 # Set page configuration
 st.set_page_config(
     page_title="SCAN Site Analyzer",
-    page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Add custom CSS for better styling
+# Add clean, professional CSS
 st.markdown("""
 <style>
     .main-header {
@@ -22,17 +22,20 @@ st.markdown("""
         color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
+        font-weight: bold;
     }
     .sub-header {
         font-size: 1.5rem;
         color: #2e86ab;
         margin-bottom: 1rem;
+        font-weight: 600;
     }
     .info-box {
         background-color: #f0f2f6;
         padding: 1rem;
         border-radius: 0.5rem;
         margin-bottom: 1rem;
+        border-left: 4px solid #1f77b4;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -223,9 +226,9 @@ def create_station_overview(nearby_stations_df):
     
     return pd.DataFrame(overview_data)
 
-# Plotting functions (simplified for Streamlit)
+# Enhanced plotting functions with min/max callouts
 def plot_soil_moisture(soil_moisture_20_df, soil_moisture_40_df, station_name):
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
     
     soil_moisture_20_df['date'] = pd.to_datetime(soil_moisture_20_df['date'])
     soil_moisture_40_df['date'] = pd.to_datetime(soil_moisture_40_df['date'])
@@ -236,21 +239,124 @@ def plot_soil_moisture(soil_moisture_20_df, soil_moisture_40_df, station_name):
     clean_20 = remove_outliers(values_20)
     clean_40 = remove_outliers(values_40)
     
+    min_20 = clean_20.min() if not clean_20.empty else None
+    min_40 = clean_40.min() if not clean_40.empty else None
+    
     ax.plot(soil_moisture_20_df['date'], values_20, 'b-', linewidth=1, alpha=0.7, label='Soil Moisture -20"')
     ax.plot(soil_moisture_40_df['date'], values_40, 'r-', linewidth=1, alpha=0.7, label='Soil Moisture -40"')
     
-    ax.set_title(f'{station_name} - Soil Moisture Percent Minimum')
-    ax.set_ylabel('Soil Moisture (%)')
+    if min_20 is not None:
+        min_date_20 = soil_moisture_20_df.loc[values_20.idxmin(), 'date']
+        ax.annotate(f'Min: {min_20:.1f}%', 
+                   xy=(min_date_20, min_20), 
+                   xytext=(10, 10), textcoords='offset points',
+                   bbox=dict(boxstyle='round,pad=0.3', facecolor='blue', alpha=0.7),
+                   arrowprops=dict(arrowstyle='->', color='blue'))
+    
+    if min_40 is not None:
+        min_date_40 = soil_moisture_40_df.loc[values_40.idxmin(), 'date']
+        ax.annotate(f'Min: {min_40:.1f}%', 
+                   xy=(min_date_40, min_40), 
+                   xytext=(10, -20), textcoords='offset points',
+                   bbox=dict(boxstyle='round,pad=0.3', facecolor='red', alpha=0.7),
+                   arrowprops=dict(arrowstyle='->', color='red'))
+    
+    ax.set_title(f'{station_name} - Soil Moisture Percent Minimum', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Soil Moisture (%)', fontsize=12)
     ax.legend()
     ax.grid(True, alpha=0.3)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
     plt.xticks(rotation=45)
     plt.tight_layout()
     
     return fig
 
+def plot_soil_temp(soil_temp_20_df, soil_temp_40_df, station_name):
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    soil_temp_20_df['date'] = pd.to_datetime(soil_temp_20_df['date'])
+    soil_temp_40_df['date'] = pd.to_datetime(soil_temp_40_df['date'])
+    
+    values_20 = pd.to_numeric(soil_temp_20_df['value'], errors='coerce').dropna()
+    values_40 = pd.to_numeric(soil_temp_40_df['value'], errors='coerce').dropna()
+    
+    clean_20 = remove_outliers(values_20)
+    clean_40 = remove_outliers(values_40)
+    
+    max_20 = clean_20.max() if not clean_20.empty else None
+    max_40 = clean_40.max() if not clean_40.empty else None
+    
+    ax.plot(soil_temp_20_df['date'], values_20, 'b-', linewidth=1, alpha=0.7, label='Soil Temp -20"')
+    ax.plot(soil_temp_40_df['date'], values_40, 'r-', linewidth=1, alpha=0.7, label='Soil Temp -40"')
+    
+    if max_20 is not None:
+        max_date_20 = soil_temp_20_df.loc[values_20.idxmax(), 'date']
+        ax.annotate(f'Max: {max_20:.1f}°F', 
+                   xy=(max_date_20, max_20), 
+                   xytext=(10, 10), textcoords='offset points',
+                   bbox=dict(boxstyle='round,pad=0.3', facecolor='blue', alpha=0.7),
+                   arrowprops=dict(arrowstyle='->', color='blue'))
+    
+    if max_40 is not None:
+        max_date_40 = soil_temp_40_df.loc[values_40.idxmax(), 'date']
+        ax.annotate(f'Max: {max_40:.1f}°F', 
+                   xy=(max_date_40, max_40), 
+                   xytext=(10, -20), textcoords='offset points',
+                   bbox=dict(boxstyle='round,pad=0.3', facecolor='red', alpha=0.7),
+                   arrowprops=dict(arrowstyle='->', color='red'))
+    
+    ax.set_title(f'{station_name} - Soil Temperature Maximum', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Soil Temperature (°F)', fontsize=12)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    return fig
+
+def plot_ambient_temp(air_temp_max_df, station_name):
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    air_temp_max_df['date'] = pd.to_datetime(air_temp_max_df['date'])
+    values = pd.to_numeric(air_temp_max_df['value'], errors='coerce').dropna()
+    
+    clean_values = remove_outliers(values)
+    max_temp = clean_values.max() if not clean_values.empty else None
+    
+    ax.plot(air_temp_max_df['date'], values, 'b-', linewidth=1, alpha=0.7, label='Air Temperature Max')
+    
+    if max_temp is not None:
+        max_date = air_temp_max_df.loc[values.idxmax(), 'date']
+        ax.annotate(f'Max: {max_temp:.1f}°F', 
+                   xy=(max_date, max_temp), 
+                   xytext=(10, 10), textcoords='offset points',
+                   bbox=dict(boxstyle='round,pad=0.3', facecolor='blue', alpha=0.7),
+                   arrowprops=dict(arrowstyle='->', color='blue'))
+    
+    ax.set_title(f'{station_name} - Ambient Air Temperature Maximum', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Air Temperature (°F)', fontsize=12)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    return fig
+
+def fig_to_buffer(fig):
+    """Convert matplotlib figure to bytes for download"""
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
+    buf.seek(0)
+    return buf
+
 # Main app
 def main():
-    st.markdown('<h1 class="main-header">🌱 SCAN Site Analyzer</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">SCAN Site Analyzer</h1>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="info-box">
@@ -262,7 +368,7 @@ def main():
     # Sidebar for input
     with st.sidebar:
         st.header("Location Input")
-        st.write("Enter coordinates or use the map:")
+        st.write("Enter coordinates to find nearby SCAN sites:")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -270,14 +376,12 @@ def main():
         with col2:
             longitude = st.number_input("Longitude", value=-111.0426, format="%.6f")
         
-        num_sites = st.slider("Number of sites to show", 1, 10, 5)
-        search_radius = st.slider("Search radius (miles)", 10, 200, 50)
+        num_sites = st.slider("Number of closest sites to show", 1, 10, 5)
         
         if st.button("Find SCAN Sites", type="primary"):
             st.session_state.latitude = latitude
             st.session_state.longitude = longitude
             st.session_state.num_sites = num_sites
-            st.session_state.search_radius = search_radius
             st.session_state.search_triggered = True
     
     # Main content
@@ -301,7 +405,7 @@ def main():
             overview_table = create_station_overview(nearby_stations)
             st.dataframe(overview_table, use_container_width=True)
             
-            # Download buttons
+            # Download buttons for data
             col1, col2 = st.columns(2)
             with col1:
                 csv_stations = nearby_stations.to_csv(index=False)
@@ -320,8 +424,8 @@ def main():
                     mime="text/csv"
                 )
             
-            # Station details with plots
-            st.markdown('<h3 class="sub-header">Station Details</h3>', unsafe_allow_html=True)
+            # Station details with all 5 plots
+            st.markdown('<h3 class="sub-header">Detailed Analysis</h3>', unsafe_allow_html=True)
             selected_station = st.selectbox(
                 "Select a station for detailed analysis:",
                 nearby_stations['SCAN Site'].tolist()
@@ -331,33 +435,80 @@ def main():
                 station_data = nearby_stations[nearby_stations['SCAN Site'] == selected_station].iloc[0]
                 station_triplet = station_data['Station Triplet']
                 
-                with st.spinner(f"Loading data for {selected_station}..."):
+                with st.spinner(f"Loading detailed data for {selected_station}..."):
                     sensor_dfs = get_station_sensor_data(station_triplet)
                 
-                # Create plots
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    if 'soil_moisture_20' in sensor_dfs and 'soil_moisture_40' in sensor_dfs:
-                        fig_moisture = plot_soil_moisture(
-                            sensor_dfs['soil_moisture_20'],
-                            sensor_dfs['soil_moisture_40'],
-                            selected_station
+                # Create all 5 plots
+                if all(key in sensor_dfs for key in ['soil_moisture_20', 'soil_moisture_40', 'soil_temp_20', 'soil_temp_40', 'air_temp_max']):
+                    
+                    # Soil Moisture Plot
+                    st.markdown("#### Soil Moisture Analysis")
+                    fig_moisture = plot_soil_moisture(
+                        sensor_dfs['soil_moisture_20'],
+                        sensor_dfs['soil_moisture_40'],
+                        selected_station
+                    )
+                    st.pyplot(fig_moisture)
+                    
+                    # Soil Temperature Plot
+                    st.markdown("#### Soil Temperature Analysis")
+                    fig_soil_temp = plot_soil_temp(
+                        sensor_dfs['soil_temp_20'],
+                        sensor_dfs['soil_temp_40'],
+                        selected_station
+                    )
+                    st.pyplot(fig_soil_temp)
+                    
+                    # Ambient Temperature Plot
+                    st.markdown("#### Ambient Temperature Analysis")
+                    fig_ambient_temp = plot_ambient_temp(
+                        sensor_dfs['air_temp_max'],
+                        selected_station
+                    )
+                    st.pyplot(fig_ambient_temp)
+                    
+                    # Download all plots as PNG
+                    st.markdown("#### Download Plots")
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        moisture_buf = fig_to_buffer(fig_moisture)
+                        st.download_button(
+                            label="Download Soil Moisture Plot",
+                            data=moisture_buf,
+                            file_name=f"{selected_station}_soil_moisture.png",
+                            mime="image/png"
                         )
-                        st.pyplot(fig_moisture)
+                    
+                    with col2:
+                        soil_temp_buf = fig_to_buffer(fig_soil_temp)
+                        st.download_button(
+                            label="Download Soil Temp Plot",
+                            data=soil_temp_buf,
+                            file_name=f"{selected_station}_soil_temperature.png",
+                            mime="image/png"
+                        )
+                    
+                    with col3:
+                        ambient_temp_buf = fig_to_buffer(fig_ambient_temp)
+                        st.download_button(
+                            label="Download Ambient Temp Plot",
+                            data=ambient_temp_buf,
+                            file_name=f"{selected_station}_ambient_temperature.png",
+                            mime="image/png"
+                        )
                 
-                with col2:
-                    # Add other plots here as needed
-                    st.info("Additional plots can be added here")
+                else:
+                    st.warning("Some sensor data is missing for this station.")
         
         else:
             st.error("No SCAN sites found near the specified location.")
     
     else:
         # Welcome screen
-        st.info("👈 Enter coordinates in the sidebar to get started!")
+        st.info("Enter coordinates in the sidebar to get started!")
         
-        # Sample data preview
+        # About section
         st.markdown('<h3 class="sub-header">About SCAN Sites</h3>', unsafe_allow_html=True)
         st.write("""
         The Soil Climate Analysis Network (SCAN) provides nationwide soil moisture and 

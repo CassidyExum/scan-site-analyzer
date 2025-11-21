@@ -10,6 +10,7 @@ import io
 # Set page configuration
 st.set_page_config(
     page_title="SCAN Site Analyzer",
+    page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -165,13 +166,22 @@ def create_station_overview(nearby_stations_df):
     progress_bar = st.progress(0)
     status_text = st.empty()
     
+    # Initialize session state for sensor data if it doesn't exist
+    if 'sensor_data_cache' not in st.session_state:
+        st.session_state.sensor_data_cache = {}
+    
     for i, (_, station) in enumerate(nearby_stations_df.iterrows()):
         station_triplet = station['Station Triplet']
         station_name = station['SCAN Site']
         
         status_text.text(f"Fetching data for {station_name}... ({i+1}/{len(nearby_stations_df)})")
         
-        sensor_dfs = get_station_sensor_data(station_triplet)
+        # Check if we already have this station's data cached
+        if station_triplet not in st.session_state.sensor_data_cache:
+            sensor_dfs = get_station_sensor_data(station_triplet)
+            st.session_state.sensor_data_cache[station_triplet] = sensor_dfs
+        else:
+            sensor_dfs = st.session_state.sensor_data_cache[station_triplet]
         
         soil_moisture_min_20 = 'N/A'
         soil_moisture_min_40 = 'N/A'
@@ -379,6 +389,14 @@ def main():
         num_sites = st.slider("Number of closest sites to show", 1, 10, 5)
         
         if st.button("Find SCAN Sites", type="primary"):
+            # Clear previous cache when doing a new search
+            if 'sensor_data_cache' in st.session_state:
+                del st.session_state.sensor_data_cache
+            if 'nearby_stations' in st.session_state:
+                del st.session_state.nearby_stations
+            if 'overview_table' in st.session_state:
+                del st.session_state.overview_table
+            
             st.session_state.latitude = latitude
             st.session_state.longitude = longitude
             st.session_state.num_sites = num_sites
@@ -392,17 +410,23 @@ def main():
         
         st.markdown(f'<h2 class="sub-header">SCAN Sites near ({latitude}, {longitude})</h2>', unsafe_allow_html=True)
         
-        # Get nearby stations
-        with st.spinner("Finding nearby SCAN sites..."):
-            nearby_stations = get_closest_scan_sites(latitude, longitude, num_sites)
+        # Get nearby stations (cache if not already loaded)
+        if 'nearby_stations' not in st.session_state:
+            with st.spinner("Finding nearby SCAN sites..."):
+                st.session_state.nearby_stations = get_closest_scan_sites(latitude, longitude, num_sites)
+        
+        nearby_stations = st.session_state.nearby_stations
         
         if not nearby_stations.empty:
             # Display stations
             st.dataframe(nearby_stations, use_container_width=True)
             
-            # Create overview table
-            st.markdown('<h3 class="sub-header">Site Overview</h3>', unsafe_allow_html=True)
-            overview_table = create_station_overview(nearby_stations)
+            # Create overview table (cache if not already loaded)
+            if 'overview_table' not in st.session_state:
+                st.markdown('<h3 class="sub-header">Site Overview</h3>', unsafe_allow_html=True)
+                st.session_state.overview_table = create_station_overview(nearby_stations)
+            
+            overview_table = st.session_state.overview_table
             st.dataframe(overview_table, use_container_width=True)
             
             # Download buttons for data
@@ -424,7 +448,7 @@ def main():
                     mime="text/csv"
                 )
             
-            # Station details with all 5 plots
+            # Station details with all 5 plots (uses cached data)
             st.markdown('<h3 class="sub-header">Detailed Analysis</h3>', unsafe_allow_html=True)
             selected_station = st.selectbox(
                 "Select a station for detailed analysis:",
@@ -435,71 +459,74 @@ def main():
                 station_data = nearby_stations[nearby_stations['SCAN Site'] == selected_station].iloc[0]
                 station_triplet = station_data['Station Triplet']
                 
-                with st.spinner(f"Loading detailed data for {selected_station}..."):
-                    sensor_dfs = get_station_sensor_data(station_triplet)
-                
-                # Create all 5 plots
-                if all(key in sensor_dfs for key in ['soil_moisture_20', 'soil_moisture_40', 'soil_temp_20', 'soil_temp_40', 'air_temp_max']):
+                # Use cached sensor data - no API calls here!
+                if 'sensor_data_cache' in st.session_state and station_triplet in st.session_state.sensor_data_cache:
+                    sensor_dfs = st.session_state.sensor_data_cache[station_triplet]
                     
-                    # Soil Moisture Plot
-                    st.markdown("#### Soil Moisture Analysis")
-                    fig_moisture = plot_soil_moisture(
-                        sensor_dfs['soil_moisture_20'],
-                        sensor_dfs['soil_moisture_40'],
-                        selected_station
-                    )
-                    st.pyplot(fig_moisture)
-                    
-                    # Soil Temperature Plot
-                    st.markdown("#### Soil Temperature Analysis")
-                    fig_soil_temp = plot_soil_temp(
-                        sensor_dfs['soil_temp_20'],
-                        sensor_dfs['soil_temp_40'],
-                        selected_station
-                    )
-                    st.pyplot(fig_soil_temp)
-                    
-                    # Ambient Temperature Plot
-                    st.markdown("#### Ambient Temperature Analysis")
-                    fig_ambient_temp = plot_ambient_temp(
-                        sensor_dfs['air_temp_max'],
-                        selected_station
-                    )
-                    st.pyplot(fig_ambient_temp)
-                    
-                    # Download all plots as PNG
-                    st.markdown("#### Download Plots")
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        moisture_buf = fig_to_buffer(fig_moisture)
-                        st.download_button(
-                            label="Download Soil Moisture Plot",
-                            data=moisture_buf,
-                            file_name=f"{selected_station}_soil_moisture.png",
-                            mime="image/png"
+                    # Create all 5 plots
+                    if all(key in sensor_dfs for key in ['soil_moisture_20', 'soil_moisture_40', 'soil_temp_20', 'soil_temp_40', 'air_temp_max']):
+                        
+                        # Soil Moisture Plot
+                        st.markdown("#### Soil Moisture Analysis")
+                        fig_moisture = plot_soil_moisture(
+                            sensor_dfs['soil_moisture_20'],
+                            sensor_dfs['soil_moisture_40'],
+                            selected_station
                         )
-                    
-                    with col2:
-                        soil_temp_buf = fig_to_buffer(fig_soil_temp)
-                        st.download_button(
-                            label="Download Soil Temp Plot",
-                            data=soil_temp_buf,
-                            file_name=f"{selected_station}_soil_temperature.png",
-                            mime="image/png"
+                        st.pyplot(fig_moisture)
+                        
+                        # Soil Temperature Plot
+                        st.markdown("#### Soil Temperature Analysis")
+                        fig_soil_temp = plot_soil_temp(
+                            sensor_dfs['soil_temp_20'],
+                            sensor_dfs['soil_temp_40'],
+                            selected_station
                         )
-                    
-                    with col3:
-                        ambient_temp_buf = fig_to_buffer(fig_ambient_temp)
-                        st.download_button(
-                            label="Download Ambient Temp Plot",
-                            data=ambient_temp_buf,
-                            file_name=f"{selected_station}_ambient_temperature.png",
-                            mime="image/png"
+                        st.pyplot(fig_soil_temp)
+                        
+                        # Ambient Temperature Plot
+                        st.markdown("#### Ambient Temperature Analysis")
+                        fig_ambient_temp = plot_ambient_temp(
+                            sensor_dfs['air_temp_max'],
+                            selected_station
                         )
-                
+                        st.pyplot(fig_ambient_temp)
+                        
+                        # Download all plots as PNG
+                        st.markdown("#### Download Plots")
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            moisture_buf = fig_to_buffer(fig_moisture)
+                            st.download_button(
+                                label="Download Soil Moisture Plot",
+                                data=moisture_buf,
+                                file_name=f"{selected_station}_soil_moisture.png",
+                                mime="image/png"
+                            )
+                        
+                        with col2:
+                            soil_temp_buf = fig_to_buffer(fig_soil_temp)
+                            st.download_button(
+                                label="Download Soil Temp Plot",
+                                data=soil_temp_buf,
+                                file_name=f"{selected_station}_soil_temperature.png",
+                                mime="image/png"
+                            )
+                        
+                        with col3:
+                            ambient_temp_buf = fig_to_buffer(fig_ambient_temp)
+                            st.download_button(
+                                label="Download Ambient Temp Plot",
+                                data=ambient_temp_buf,
+                                file_name=f"{selected_station}_ambient_temperature.png",
+                                mime="image/png"
+                            )
+                    
+                    else:
+                        st.warning("Some sensor data is missing for this station.")
                 else:
-                    st.warning("Some sensor data is missing for this station.")
+                    st.warning("Sensor data not available for this station. Please perform a new search.")
         
         else:
             st.error("No SCAN sites found near the specified location.")

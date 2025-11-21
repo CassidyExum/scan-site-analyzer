@@ -11,7 +11,6 @@ import zipfile
 # Set page configuration
 st.set_page_config(
     page_title="SCAN Site Analyzer",
-    page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -377,7 +376,7 @@ def main():
     
     st.markdown("""
     <div class="info-box">
-    This app helps you find the closest USDA SCAN (Soil Climate Analysis Network) sites 
+    This app helps you find the closest National Weather and Climate Center SCAN (Soil Climate Analysis Network) sites 
     and analyze soil moisture, soil temperature, and ambient temperature data.
     </div>
     """, unsafe_allow_html=True)
@@ -528,18 +527,21 @@ def main():
         st.info("Enter coordinates in the sidebar and click 'Find SCAN Sites' to get started!")
         
         # About section
-        st.markdown('<h3 class="sub-header">About SCAN Sites</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="sub-header">About This Application</h3>', unsafe_allow_html=True)
         st.write("""
         The Soil Climate Analysis Network (SCAN) provides nationwide soil moisture and 
-        climate data collected from over 200 stations across the United States.
+        climate data collected from over 200 stations across the United States. By accessing
+        their API we can speed up the process of collecting SCAN data for Ampacity Studies
         
-        **Data available includes:**
-        - Soil moisture at 20" and 40" depths
-        - Soil temperature at 20" and 40" depths  
-        - Ambient air temperature
-        - Precipitation
-        - And more...
+        **Inputs:**
+        - Latitude and Longitude of Project Site
+        
+        **Outputs:**
+        - Table of nearest sites, codes for use on the NWCC Map, elevation, Latitude, and Longitude
+        - Table of valuable data with outliers removed
+        - Plots of valuable data for Studies reports with outliers removed
         """)
 
 if __name__ == "__main__":
     main()
+

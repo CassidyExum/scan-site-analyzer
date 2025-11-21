@@ -32,7 +32,6 @@ st.markdown("""
         font-weight: 600;
     }
     .info-box {
-        background-color: #f0f2f6;
         padding: 1rem;
         border-radius: 0.5rem;
         margin-bottom: 1rem;
@@ -556,3 +555,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

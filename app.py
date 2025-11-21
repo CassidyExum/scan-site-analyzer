@@ -7,6 +7,8 @@ import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 import io
 import zipfile
+import folium
+from streamlit_folium import st_folium
 
 # Set page configuration
 st.set_page_config(
@@ -55,6 +57,38 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     return R * c * 0.621371
+
+def simple_map(latitude, longitude, zoom=12, popup_text=None):
+    """
+    Simple function to create a Folium map centered on coordinates.
+    
+    Parameters:
+    -----------
+    latitude : float
+        Latitude coordinate
+    longitude : float
+        Longitude coordinate
+    zoom : int, default=12
+        Zoom level
+    popup_text : str, default=None
+        Text for marker popup
+    
+    Returns:
+    --------
+    folium.Map object
+    """
+    # Create map
+    m = folium.Map(location=[latitude, longitude], zoom_start=zoom)
+    
+    # Add marker
+    if popup_text:
+        folium.Marker(
+            [latitude, longitude],
+            popup=popup_text,
+            icon=folium.Icon(color='red')
+        ).add_to(m)
+    
+    return m
 
 def get_closest_scan_sites(latitude: float, longitude: float, num_sites: int = 5):
     STATIONS_URL = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stations"
@@ -521,7 +555,21 @@ def main():
                             selected_station
                         )
                         st.pyplot(fig_ambient_temp)
-                        
+
+                        # Add map under the plots
+                        st.markdown("#### Location Map")
+                        station_lat = station_data['Latitude']
+                        station_lon = station_data['Longitude']
+            
+                        # Create and display map
+                        station_map = simple_map(
+                            latitude=station_lat,
+                            longitude=station_lon,
+                            zoom=10,
+                            popup_text=f"{selected_station} SCAN Site"
+                        )
+                        st_folium(station_map, width=700, height=400)
+
                         # Single download button for all plots
                         st.markdown("#### Download All Plots")
                         figures_dict = {
@@ -570,6 +618,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

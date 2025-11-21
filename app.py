@@ -225,7 +225,6 @@ def create_station_overview(nearby_stations_df):
         
         progress_bar.progress((i + 1) / len(nearby_stations_df))
     
-    status_text.text("Complete!")
     progress_bar.empty()
     
     return pd.DataFrame(overview_data)
@@ -553,6 +552,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

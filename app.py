@@ -104,7 +104,7 @@ def get_closest_scan_sites(latitude: float, longitude: float, num_sites: int = 5
     
     try:
         params = {'format': 'json'}
-        response = requests.get(STATIONS_URL, params=params, timeout=90)
+        response = requests.get(STATIONS_URL, params=params, timeout=120)
         response.raise_for_status()
         all_stations = response.json()
         
@@ -177,7 +177,7 @@ def get_station_sensor_data(station_triplet: str):
                f"&returnSuspectData=false"
                f"&format=json")
         
-        response = requests.get(url, timeout=90)
+        response = requests.get(url, timeout=120)
         
         if response.status_code == 200:
             data = response.json()
@@ -618,6 +618,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

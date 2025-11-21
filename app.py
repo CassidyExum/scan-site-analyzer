@@ -212,23 +212,12 @@ def create_station_overview(nearby_stations_df):
                         elif sensor_key == 'air_temp_max':
                             ambient_temp_max = f"{clean_values.max():.1f}°F"
         
-        # Combine soil moisture
-        if soil_moisture_min_20 != 'N/A' and soil_moisture_min_40 != 'N/A':
-            min_20_val = float(soil_moisture_min_20.replace('%', ''))
-            min_40_val = float(soil_moisture_min_40.replace('%', ''))
-            soil_moisture_min = f"{min(min_20_val, min_40_val):.1f}%"
-        elif soil_moisture_min_20 != 'N/A':
-            soil_moisture_min = soil_moisture_min_20
-        elif soil_moisture_min_40 != 'N/A':
-            soil_moisture_min = soil_moisture_min_40
-        else:
-            soil_moisture_min = 'N/A'
-        
         overview_data.append({
             'SCAN Site': station_name,
             'Elevation': station['Elevation'],
             'Distance to Installation': station['Distance to Installation'],
-            'Soil Moisture Minimum': soil_moisture_min,
+            'Soil Moisture Minimum 20in': soil_moisture_min_20,
+            'Soil Moisture Minimum 40in': soil_moisture_min_40,
             'Soil Temp Maximum 20in': soil_temp_max_20,
             'Soil Temp Maximum 40in': soil_temp_max_40,
             'Ambient Temp Maximum': ambient_temp_max
@@ -444,7 +433,7 @@ def main():
         
         if not nearby_stations.empty:
             # Display stations
-            st.dataframe(nearby_stations, use_container_width=True)
+            st.dataframe(nearby_stations, use_container_width=True, hide_index=True)
             
             # Create overview table (cache if not already loaded)
             if 'overview_table' not in st.session_state:
@@ -452,7 +441,7 @@ def main():
                 st.session_state.overview_table = create_station_overview(nearby_stations)
             
             overview_table = st.session_state.overview_table
-            st.dataframe(overview_table, use_container_width=True)
+            st.dataframe(overview_table, use_container_width=True, hide_index=True)
             
             # Download buttons for data
             col1, col2 = st.columns(2)
@@ -564,6 +553,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

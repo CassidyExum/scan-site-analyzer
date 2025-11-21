@@ -22,7 +22,7 @@ st.markdown("""
         font-size: 2.5rem;
         color: #1f77b4;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
         font-weight: bold;
     }
     .sub-header {
@@ -37,6 +37,13 @@ st.markdown("""
         border-radius: 0.5rem;
         margin-bottom: 1rem;
         border-left: 4px solid #1f77b4;
+    }
+    .logo-container {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    .logo-img {
+        max-height: 80px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -372,6 +379,13 @@ def create_zip_buffer(figures_dict, station_name):
 
 # Main app
 def main():
+    # Add RRC logo
+    st.markdown("""
+    <div class="logo-container">
+        <img src="https://cdn.theorg.com/0f8b4de9-d8c5-4a5a-bfb7-dfe6a539b1f7_medium.jpg" class="logo-img">
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown('<h1 class="main-header">SCAN Site Analyzer</h1>', unsafe_allow_html=True)
     
     st.markdown("""
@@ -527,22 +541,18 @@ def main():
         st.info("Enter coordinates in the sidebar and click 'Find SCAN Sites' to get started!")
         
         # About section
-        st.markdown('<h3 class="sub-header">About This Application</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="sub-header">About SCAN Sites</h3>', unsafe_allow_html=True)
         st.write("""
         The Soil Climate Analysis Network (SCAN) provides nationwide soil moisture and 
-        climate data collected from over 200 stations across the United States. By accessing
-        their API we can speed up the process of collecting SCAN data for Ampacity Studies
+        climate data collected from over 200 stations across the United States.
         
-        **Inputs:**
-        - Latitude and Longitude of Project Site
-        
-        **Outputs:**
-        - Table of nearest sites, codes for use on the NWCC Map, elevation, Latitude, and Longitude
-        - Table of valuable data with outliers removed
-        - Plots of valuable data for Studies reports with outliers removed
+        **Data available includes:**
+        - Soil moisture at 20" and 40" depths
+        - Soil temperature at 20" and 40" depths  
+        - Ambient air temperature
+        - Precipitation
+        - And more...
         """)
 
 if __name__ == "__main__":
     main()
-
-

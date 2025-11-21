@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 import io
+import zipfile
 
 # Set page configuration
 st.set_page_config(
@@ -357,12 +358,18 @@ def plot_ambient_temp(air_temp_max_df, station_name):
     
     return fig
 
-def fig_to_buffer(fig):
-    """Convert matplotlib figure to bytes for download"""
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
-    buf.seek(0)
-    return buf
+def create_zip_buffer(figures_dict, station_name):
+    """Create a zip file containing all plots"""
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        for plot_name, fig in figures_dict.items():
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
+            buf.seek(0)
+            filename = f"{station_name}_{plot_name.lower().replace(' ', '_')}.png"
+            zip_file.writestr(filename, buf.getvalue())
+    zip_buffer.seek(0)
+    return zip_buffer
 
 # Main app
 def main():
@@ -402,7 +409,7 @@ def main():
             st.session_state.num_sites = num_sites
             st.session_state.search_triggered = True
     
-    # Main content
+    # Main content - only show results after button click
     if hasattr(st.session_state, 'search_triggered') and st.session_state.search_triggered:
         latitude = st.session_state.latitude
         longitude = st.session_state.longitude
@@ -492,36 +499,21 @@ def main():
                         )
                         st.pyplot(fig_ambient_temp)
                         
-                        # Download all plots as PNG
-                        st.markdown("#### Download Plots")
-                        col1, col2, col3 = st.columns(3)
+                        # Single download button for all plots
+                        st.markdown("#### Download All Plots")
+                        figures_dict = {
+                            "Soil Moisture": fig_moisture,
+                            "Soil Temperature": fig_soil_temp,
+                            "Ambient Temperature": fig_ambient_temp
+                        }
                         
-                        with col1:
-                            moisture_buf = fig_to_buffer(fig_moisture)
-                            st.download_button(
-                                label="Download Soil Moisture Plot",
-                                data=moisture_buf,
-                                file_name=f"{selected_station}_soil_moisture.png",
-                                mime="image/png"
-                            )
-                        
-                        with col2:
-                            soil_temp_buf = fig_to_buffer(fig_soil_temp)
-                            st.download_button(
-                                label="Download Soil Temp Plot",
-                                data=soil_temp_buf,
-                                file_name=f"{selected_station}_soil_temperature.png",
-                                mime="image/png"
-                            )
-                        
-                        with col3:
-                            ambient_temp_buf = fig_to_buffer(fig_ambient_temp)
-                            st.download_button(
-                                label="Download Ambient Temp Plot",
-                                data=ambient_temp_buf,
-                                file_name=f"{selected_station}_ambient_temperature.png",
-                                mime="image/png"
-                            )
+                        zip_buffer = create_zip_buffer(figures_dict, selected_station)
+                        st.download_button(
+                            label="Download All Plots (ZIP)",
+                            data=zip_buffer,
+                            file_name=f"{selected_station}_plots.zip",
+                            mime="application/zip"
+                        )
                     
                     else:
                         st.warning("Some sensor data is missing for this station.")
@@ -532,8 +524,8 @@ def main():
             st.error("No SCAN sites found near the specified location.")
     
     else:
-        # Welcome screen
-        st.info("Enter coordinates in the sidebar to get started!")
+        # Welcome screen - only shown before search
+        st.info("Enter coordinates in the sidebar and click 'Find SCAN Sites' to get started!")
         
         # About section
         st.markdown('<h3 class="sub-header">About SCAN Sites</h3>', unsafe_allow_html=True)

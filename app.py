@@ -396,9 +396,9 @@ def main():
         
         col1, col2 = st.columns(2)
         with col1:
-            latitude = st.number_input("Latitude", value=45.6790, format="%.6f")
+            latitude = st.number_input("Latitude", value=00.0000, format="%.6f")
         with col2:
-            longitude = st.number_input("Longitude", value=-111.0426, format="%.6f")
+            longitude = st.number_input("Longitude", value=-00.0000, format="%.6f")
         
         num_sites = st.slider("Number of closest sites to show", 1, 10, 5)
         
@@ -553,6 +553,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

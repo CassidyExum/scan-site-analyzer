@@ -384,6 +384,13 @@ def main():
         <img src="https://cdn.theorg.com/0f8b4de9-d8c5-4a5a-bfb7-dfe6a539b1f7_medium.jpg" class="logo-img">
     </div>
     """, unsafe_allow_html=True)
+
+     # Add Created by section here
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 1rem; color: #666; font-style: italic;">
+        Created by Cassidy Exum - BESS Engineer
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown('<h1 class="main-header">SCAN Site Analyzer</h1>', unsafe_allow_html=True)
     
@@ -540,19 +547,23 @@ def main():
         st.info("Enter coordinates in the sidebar and click 'Find SCAN Sites' to get started!")
         
         # About section
-        st.markdown('<h3 class="sub-header">About SCAN Sites</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="sub-header">About This Application</h3>', unsafe_allow_html=True)
         st.write("""
-        The Soil Climate Analysis Network (SCAN) provides nationwide soil moisture and 
-        climate data collected from over 200 stations across the United States.
-        
-        **Data available includes:**
+        Enter the latitude and longitude of your project site into the left sidebar, select the number
+        of SCAN stations you want data for (the more stations you select the long it will take to run,
+        I recommend 5 stations to start).
+
+        **Inputs:**
+        - Lat + Long of Project Site
+
+        **Outputs**
         - Soil moisture at 20" and 40" depths
         - Soil temperature at 20" and 40" depths  
         - Ambient air temperature
-        - Precipitation
-        - And more...
+        - Tables and Plots of the above values
         """)
 
 if __name__ == "__main__":
     main()
+
 

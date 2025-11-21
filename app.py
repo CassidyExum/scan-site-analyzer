@@ -101,7 +101,7 @@ def get_closest_scan_sites(latitude: float, longitude: float, num_sites: int = 5
             'SCAN Site': df_scan['name'].values,
             'Station Triplet': df_scan['stationTriplet'].values,
             'Elevation': df_scan['elevation'].apply(lambda x: f"{x} ft" if pd.notna(x) else 'N/A'),
-            'Distance to Installation': df_scan['Distance to Installation'].apply(lambda x: f"{x:.2f} miles"),
+            'Distance to Installation (Miles)': df_scan['Distance to Installation'].round(2),
             'Latitude': df_scan['latitude'].values,
             'Longitude': df_scan['longitude'].values
         })
@@ -215,7 +215,7 @@ def create_station_overview(nearby_stations_df):
         overview_data.append({
             'SCAN Site': station_name,
             'Elevation': station['Elevation'],
-            'Distance to Installation': f"{float(station['Distance to Installation']):.2f} miles",
+           'Distance to Installation (Miles)': station['Distance to Installation'],
             'Soil Moisture Minimum 20in': soil_moisture_min_20,
             'Soil Moisture Minimum 40in': soil_moisture_min_40,
             'Soil Temp Maximum 20in': soil_temp_max_20,
@@ -553,6 +553,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

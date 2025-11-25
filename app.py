@@ -708,6 +708,7 @@ def main():
 
         **For report usage:** 
         - All tables can exported to CSV
+        - All plots can be exported as .png files in a ZIP folder
         - Please screenshot the map using your snipping tool to get a png image
 
         **Inputs:**
@@ -724,6 +725,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

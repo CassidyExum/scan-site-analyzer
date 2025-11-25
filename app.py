@@ -58,41 +58,6 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     return R * c * 0.621371
 
-def create_map_image(station_name, center_coord, station_coords, station_names):
-    """Create a simple coordinate plot as a map substitute"""
-    fig, ax = plt.subplots(figsize=(12, 8))
-    
-    # Plot center point (user's search location)
-    ax.plot(center_coord[1], center_coord[0], 'r*', markersize=15, label='Search Location', markeredgecolor='darkred', markeredgewidth=2)
-    
-    # Plot station points
-    for i, (coord, name) in enumerate(zip(station_coords, station_names)):
-        ax.plot(coord[1], coord[0], 'bo', markersize=10, label=name if i == 0 else "")
-        ax.text(coord[1], coord[0], f'  {name}', fontsize=10, va='center', fontweight='bold')
-    
-    # Add some statistics
-    num_stations = len(station_coords)
-    avg_lat = sum(coord[0] for coord in station_coords) / num_stations
-    avg_lon = sum(coord[1] for coord in station_coords) / num_stations
-    
-    # Set labels and title
-    ax.set_xlabel('Longitude', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Latitude', fontsize=12, fontweight='bold')
-    ax.set_title(f'{station_name} - SCAN Site Locations\n({num_stations} nearby stations)', fontsize=14, fontweight='bold')
-    
-    # Add grid and legend
-    ax.grid(True, alpha=0.3, linestyle='--')
-    ax.legend(loc='upper right', framealpha=0.9)
-    
-    # Add info box
-    info_text = f'Search Center: {center_coord[0]:.4f}, {center_coord[1]:.4f}\nStations Shown: {num_stations}'
-    ax.text(0.02, 0.98, info_text, transform=ax.transAxes, fontsize=10,
-            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
-    
-    plt.tight_layout()
-    
-    return fig
-
 def create_static_map_always_visible_tooltips(center_coord, coordinates_list, marker_names=None, 
                                              zoom_level=12, map_size=(800, 600)):
     """
@@ -754,6 +719,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

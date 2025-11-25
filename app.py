@@ -668,23 +668,28 @@ def main():
                                 zoom_level=10,
                                 map_size=(700, 400)
                             )
-    
+
+                            #Display the map
                             st_folium(station_map, width=700, height=400)
 
-                            # Convert map to image for download
-                            import tempfile
+                            # Try to capture map as image (this may not work in all environments)
                             map_img_data = None
-                            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmpfile:
-                                station_map.save(tmpfile.name)
-                                with open(tmpfile.name, 'rb') as f:
-                                    map_img_data = f.read()
-    
-                            # Create a matplotlib figure from the map image for consistent handling
-                            map_fig, map_ax = plt.subplots(figsize=(10, 8))
-                            map_ax.imshow(plt.imread(io.BytesIO(map_img_data)))
-                            map_ax.axis('off')
-                            map_ax.set_title(f'{selected_station} - Location Map', fontsize=14, fontweight='bold')
-                            plt.tight_layout()
+                            try:
+                                # Folium's _to_png method - works in some environments
+                                map_img_data = station_map._to_png()
+                            except:
+                                # Fallback: create a simple matplotlib figure with coordinates info
+                                st.info("Map download feature requires additional setup. Showing coordinate information instead.")
+                                map_fig, map_ax = plt.subplots(figsize=(10, 6))
+                                map_ax.text(0.5, 0.5, f'Location Map for {selected_station}\n\n'
+                                            f'Center: {st.session_state.latitude:.4f}, {st.session_state.longitude:.4f}\n'
+                                            f'Station: {station_lat:.4f}, {station_lon:.4f}\n\n'
+                                            f'Interactive map available in the app above.',
+                                        ha='center', va='center', transform=map_ax.transAxes, fontsize=12)
+                                map_ax.set_title(f'{selected_station} - Location Information', fontsize=14, fontweight='bold')
+                                map_ax.axis('off')
+                                plt.tight_layout()
+                                map_img_data = None  # We'll handle this in the download function
                         
                         # Single download button for all plots
                         st.markdown("#### Download All Plots")
@@ -694,7 +699,13 @@ def main():
                             "Ambient Temperature": fig_ambient_temp
                         }
                         
-                        zip_buffer = create_zip_buffer(figures_dict, selected_station, map_fig=map_fig)
+                        # Add the map to the figures dict if we successfully captured it
+                        if map_img_data is not None:
+                            figures_dict["Location Map"] = map_fig
+                        else:
+                            st.warning("Map image capture not available. Download will include plots only.")
+
+                        zip_buffer = create_zip_buffer(figures_dict, selected_station)
                         st.download_button(
                             label="Download All Plots (ZIP)",
                             data=zip_buffer,
@@ -734,6 +745,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

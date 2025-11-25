@@ -718,7 +718,7 @@ def main():
                         figures_dict = {
                             "Soil Moisture": fig_moisture,
                             "Soil Temperature": fig_soil_temp,
-                            "Ambient Temperature": fig_ambient_temp
+                            "Ambient Temperature": fig_ambient_temp,
                             "Location Map": map_fig
                         }
 
@@ -762,6 +762,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

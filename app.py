@@ -478,16 +478,26 @@ def plot_ambient_temp(air_temp_max_df, station_name):
     
     return fig
 
-def create_zip_buffer(figures_dict, station_name):
-    """Create a zip file containing all plots"""
+def create_zip_buffer(figures_dict, station_name, map_fig=None):
+    """Create a zip file containing all plots and optionally the map"""
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        # Add all plots
         for plot_name, fig in figures_dict.items():
             buf = io.BytesIO()
             fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
             buf.seek(0)
             filename = f"{station_name}_{plot_name.lower().replace(' ', '_')}.png"
             zip_file.writestr(filename, buf.getvalue())
+        
+        # Add map if provided
+        if map_fig:
+            map_buf = io.BytesIO()
+            map_fig.save(map_buf, format='png', dpi=300, bbox_inches='tight')
+            map_buf.seek(0)
+            map_filename = f"{station_name}_location_map.png"
+            zip_file.writestr(map_filename, map_buf.getvalue())
+    
     zip_buffer.seek(0)
     return zip_buffer
 
@@ -661,6 +671,21 @@ def main():
     
                             st_folium(station_map, width=700, height=400)
 
+                                # Convert map to image for download
+                                import tempfile
+                                map_img_data = None
+                                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmpfile:
+                                    station_map.save(tmpfile.name)
+                                    with open(tmpfile.name, 'rb') as f:
+                                        map_img_data = f.read()
+    
+                                # Create a matplotlib figure from the map image for consistent handling
+                                map_fig, map_ax = plt.subplots(figsize=(10, 8))
+                                map_ax.imshow(plt.imread(io.BytesIO(map_img_data)))
+                                map_ax.axis('off')
+                                map_ax.set_title(f'{selected_station} - Location Map', fontsize=14, fontweight='bold')
+                                plt.tight_layout()
+                        
                         # Single download button for all plots
                         st.markdown("#### Download All Plots")
                         figures_dict = {
@@ -669,11 +694,11 @@ def main():
                             "Ambient Temperature": fig_ambient_temp
                         }
                         
-                        zip_buffer = create_zip_buffer(figures_dict, selected_station)
+                        zip_buffer = create_zip_buffer(figures_dict, selected_station, map_fig=map_fig)
                         st.download_button(
                             label="Download All Plots (ZIP)",
                             data=zip_buffer,
-                            file_name=f"{selected_station}_plots.zip",
+                            file_name=f"{selected_station}_analysis_package.zip",
                             mime="application/zip"
                         )
                     
@@ -709,6 +734,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

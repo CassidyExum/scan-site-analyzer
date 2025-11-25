@@ -706,10 +706,13 @@ def main():
         of SCAN stations you want data for (the more stations you select the longer it will take to run,
         I recommend 5 stations to start).
 
-        For reprot usage: All tables can exported to CSV. Please screenshot the map using your snipping tool to get a png image.
+        **For report usage:** 
+        - All tables can exported to CSV
+        - Please screenshot the map using your snipping tool to get a png image
 
         **Inputs:**
-        - Latitude + Longitude of Project Site
+        - Latitude of Project Site
+        - Longitude of Project Site
 
         **Outputs**
         - Elevation of each SCAN site
@@ -721,6 +724,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

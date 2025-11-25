@@ -113,8 +113,8 @@ def create_static_map_always_visible_tooltips(center_coord, coordinates_list, ma
         min_lon = min(coord[1] for coord in all_coords)
         max_lon = max(coord[1] for coord in all_coords)
         
-        lat_padding = (max_lat - min_lat) * 0.1
-        lon_padding = (max_lon - min_lon) * 0.1
+        lat_padding = (max_lat - min_lat) * 0.05
+        lon_padding = (max_lon - min_lon) * 0.05
         
         m.fit_bounds([
             [min_lat - lat_padding, min_lon - lon_padding],
@@ -346,7 +346,6 @@ def create_station_overview(nearby_stations_df):
         
         progress_bar.progress((i + 1) / len(nearby_stations_df))
     
-    status_text.text("Complete!")
     progress_bar.empty()
     
     return pd.DataFrame(overview_data)
@@ -710,6 +709,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

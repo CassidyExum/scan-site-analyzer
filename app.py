@@ -703,11 +703,13 @@ def main():
         st.markdown('<h3 class="sub-header">About This Application</h3>', unsafe_allow_html=True)
         st.write("""
         Enter the latitude and longitude of your project site into the left sidebar, select the number
-        of SCAN stations you want data for (the more stations you select the long it will take to run,
+        of SCAN stations you want data for (the more stations you select the longer it will take to run,
         I recommend 5 stations to start).
 
+        For reprot usage: All tables can exported to CSV. Please screenshot the map using your snipping tool to get a png image.
+
         **Inputs:**
-        - Lat + Long of Project Site
+        - Latitude + Longitude of Project Site
 
         **Outputs**
         - Elevation of each SCAN site
@@ -719,6 +721,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

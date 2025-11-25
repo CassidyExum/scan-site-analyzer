@@ -671,20 +671,20 @@ def main():
     
                             st_folium(station_map, width=700, height=400)
 
-                                # Convert map to image for download
-                                import tempfile
-                                map_img_data = None
-                                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmpfile:
-                                    station_map.save(tmpfile.name)
-                                    with open(tmpfile.name, 'rb') as f:
-                                        map_img_data = f.read()
+                            # Convert map to image for download
+                            import tempfile
+                            map_img_data = None
+                            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmpfile:
+                                station_map.save(tmpfile.name)
+                                with open(tmpfile.name, 'rb') as f:
+                                    map_img_data = f.read()
     
-                                # Create a matplotlib figure from the map image for consistent handling
-                                map_fig, map_ax = plt.subplots(figsize=(10, 8))
-                                map_ax.imshow(plt.imread(io.BytesIO(map_img_data)))
-                                map_ax.axis('off')
-                                map_ax.set_title(f'{selected_station} - Location Map', fontsize=14, fontweight='bold')
-                                plt.tight_layout()
+                            # Create a matplotlib figure from the map image for consistent handling
+                            map_fig, map_ax = plt.subplots(figsize=(10, 8))
+                            map_ax.imshow(plt.imread(io.BytesIO(map_img_data)))
+                            map_ax.axis('off')
+                            map_ax.set_title(f'{selected_station} - Location Map', fontsize=14, fontweight='bold')
+                            plt.tight_layout()
                         
                         # Single download button for all plots
                         st.markdown("#### Download All Plots")
@@ -734,6 +734,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

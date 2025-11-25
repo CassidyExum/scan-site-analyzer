@@ -705,13 +705,6 @@ def main():
     
                             # Display the interactive Folium map
                             st_folium(station_map, width=700, height=400)
-    
-                            # Create the downloadable map image using matplotlib
-                            map_fig = create_map_image(selected_station, center_coord, station_coords, station_names)
-    
-                            # Display the static map image for download preview
-                            st.markdown("#### Map for Download")
-                            st.pyplot(map_fig)
                         
                         # Single download button for all plots
                         st.markdown("#### Download All Plots")
@@ -719,7 +712,6 @@ def main():
                             "Soil Moisture": fig_moisture,
                             "Soil Temperature": fig_soil_temp,
                             "Ambient Temperature": fig_ambient_temp,
-                            "Location Map": map_fig
                         }
 
                         zip_buffer = create_zip_buffer(figures_dict, selected_station)
@@ -762,6 +754,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

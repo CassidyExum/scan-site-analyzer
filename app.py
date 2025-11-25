@@ -58,6 +58,41 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     return R * c * 0.621371
 
+def create_map_image(station_name, center_coord, station_coords, station_names):
+    """Create a simple coordinate plot as a map substitute"""
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Plot center point (user's search location)
+    ax.plot(center_coord[1], center_coord[0], 'r*', markersize=15, label='Search Location', markeredgecolor='darkred', markeredgewidth=2)
+    
+    # Plot station points
+    for i, (coord, name) in enumerate(zip(station_coords, station_names)):
+        ax.plot(coord[1], coord[0], 'bo', markersize=10, label=name if i == 0 else "")
+        ax.text(coord[1], coord[0], f'  {name}', fontsize=10, va='center', fontweight='bold')
+    
+    # Add some statistics
+    num_stations = len(station_coords)
+    avg_lat = sum(coord[0] for coord in station_coords) / num_stations
+    avg_lon = sum(coord[1] for coord in station_coords) / num_stations
+    
+    # Set labels and title
+    ax.set_xlabel('Longitude', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Latitude', fontsize=12, fontweight='bold')
+    ax.set_title(f'{station_name} - SCAN Site Locations\n({num_stations} nearby stations)', fontsize=14, fontweight='bold')
+    
+    # Add grid and legend
+    ax.grid(True, alpha=0.3, linestyle='--')
+    ax.legend(loc='upper right', framealpha=0.9)
+    
+    # Add info box
+    info_text = f'Search Center: {center_coord[0]:.4f}, {center_coord[1]:.4f}\nStations Shown: {num_stations}'
+    ax.text(0.02, 0.98, info_text, transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    
+    plt.tight_layout()
+    
+    return fig
+
 def create_static_map_always_visible_tooltips(center_coord, coordinates_list, marker_names=None, 
                                              zoom_level=12, map_size=(800, 600)):
     """
@@ -649,10 +684,9 @@ def main():
                             station_data = nearby_stations[nearby_stations['SCAN Site'] == selected_station].iloc[0]
                             station_lat = station_data['Latitude']
                             station_lon = station_data['Longitude']
-    
+                            
                             # Prepare data for the map
                             center_coord = [st.session_state.latitude, st.session_state.longitude]  # User's search location
-    
                             # Get coordinates and names of all nearby stations
                             station_coords = []
                             station_names = []
@@ -668,28 +702,16 @@ def main():
                                 zoom_level=10,
                                 map_size=(700, 400)
                             )
-
-                            #Display the map
+    
+                            # Display the interactive Folium map
                             st_folium(station_map, width=700, height=400)
-
-                            # Try to capture map as image (this may not work in all environments)
-                            map_img_data = None
-                            try:
-                                # Folium's _to_png method - works in some environments
-                                map_img_data = station_map._to_png()
-                            except:
-                                # Fallback: create a simple matplotlib figure with coordinates info
-                                st.info("Map download feature requires additional setup. Showing coordinate information instead.")
-                                map_fig, map_ax = plt.subplots(figsize=(10, 6))
-                                map_ax.text(0.5, 0.5, f'Location Map for {selected_station}\n\n'
-                                            f'Center: {st.session_state.latitude:.4f}, {st.session_state.longitude:.4f}\n'
-                                            f'Station: {station_lat:.4f}, {station_lon:.4f}\n\n'
-                                            f'Interactive map available in the app above.',
-                                        ha='center', va='center', transform=map_ax.transAxes, fontsize=12)
-                                map_ax.set_title(f'{selected_station} - Location Information', fontsize=14, fontweight='bold')
-                                map_ax.axis('off')
-                                plt.tight_layout()
-                                map_img_data = None  # We'll handle this in the download function
+    
+                            # Create the downloadable map image using matplotlib
+                            map_fig = create_map_image(selected_station, center_coord, station_coords, station_names)
+    
+                            # Display the static map image for download preview
+                            st.markdown("#### Map for Download")
+                            st.pyplot(map_fig)
                         
                         # Single download button for all plots
                         st.markdown("#### Download All Plots")
@@ -697,13 +719,8 @@ def main():
                             "Soil Moisture": fig_moisture,
                             "Soil Temperature": fig_soil_temp,
                             "Ambient Temperature": fig_ambient_temp
+                            "Location Map": map_fig
                         }
-                        
-                        # Add the map to the figures dict if we successfully captured it
-                        if map_img_data is not None:
-                            figures_dict["Location Map"] = map_fig
-                        else:
-                            st.warning("Map image capture not available. Download will include plots only.")
 
                         zip_buffer = create_zip_buffer(figures_dict, selected_station)
                         st.download_button(
@@ -745,6 +762,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

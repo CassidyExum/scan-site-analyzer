@@ -523,6 +523,8 @@ def main():
     <div class="info-box">
     This app helps you find the closest National Weather and Climate Center SCAN (Soil Climate Analysis Network) sites 
     and analyze soil moisture, soil temperature, and ambient temperature data.
+
+    [Visit the SCAN site](https://nwcc-apps.sc.egov.usda.gov/imap/#version=170&elements=M&networks=!&states=!&counties=!&hucs=&minElevation=&maxElevation=&elementSelectType=any&activeOnly=true&activeForecastPointsOnly=false&hucLabels=false&hucIdLabels=false&hucParameterLabels=true&stationLabels=&overlays=&hucOverlays=2&basinOpacity=75&basinNoDataOpacity=25&basemapOpacity=100&maskOpacity=0&mode=stations&openSections=dataElement,parameter,date,basin,options,elements,location,networks&controlsOpen=true&popup=&popupMulti=&popupBasin=&base=esriNgwm&displayType=inventory&basinType=6&dataElement=WTEQ&depth=-8&parameter=PCTMED&frequency=DAILY&duration=I&customDuration=&dayPart=E&year=2023&month=11&day=14&monthPart=E&forecastPubMonth=6&forecastPubDay=1&forecastExceedance=50&useMixedPast=true&seqColor=1&divColor=7&scaleType=D&scaleMin=&scaleMax=&referencePeriodType=POR&referenceBegin=1991&referenceEnd=2020&minimumYears=20&hucAssociations=true&lat=32.499&lon=-94.950&zoom=4.5)
     </div>
     """, unsafe_allow_html=True)
     
@@ -725,6 +727,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

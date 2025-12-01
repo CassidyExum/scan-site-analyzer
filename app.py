@@ -212,8 +212,8 @@ def get_closest_scan_sites(latitude: float, longitude: float, num_sites: int = 5
         result_df = pd.DataFrame({
             'SCAN Site': df_scan['name'].values,
             'Station Triplet': df_scan['stationTriplet'].values,
-            'Elevation': df_scan['elevation'].apply(lambda x: f"{x} ft" if pd.notna(x) else 'N/A'),
-            'Distance to Installation': df_scan['Distance to Installation'].round(2),
+            'Elevation': df_scan['elevation'].apply(lambda x: f"{x}" if pd.notna(x) else 'N/A'),  # Remove ' ft'
+            'Distance to Installation (Miles)': df_scan['Distance to Installation'].round(2),
             'Latitude': df_scan['latitude'].values,
             'Longitude': df_scan['longitude'].values
         })
@@ -283,7 +283,6 @@ def create_station_overview(nearby_stations_df):
     progress_bar = st.progress(0)
     status_text = st.empty()
     
-    # Initialize session state for sensor data if it doesn't exist
     if 'sensor_data_cache' not in st.session_state:
         st.session_state.sensor_data_cache = {}
     
@@ -293,7 +292,6 @@ def create_station_overview(nearby_stations_df):
         
         status_text.text(f"Fetching data for {station_name}... ({i+1}/{len(nearby_stations_df)})")
         
-        # Check if we already have this station's data cached
         if station_triplet not in st.session_state.sensor_data_cache:
             sensor_dfs = get_station_sensor_data(station_triplet)
             st.session_state.sensor_data_cache[station_triplet] = sensor_dfs
@@ -306,7 +304,6 @@ def create_station_overview(nearby_stations_df):
         soil_temp_max_40 = 'N/A'
         ambient_temp_max = 'N/A'
         
-        # Process all sensors
         for sensor_key, df in sensor_dfs.items():
             if not df.empty:
                 values = pd.to_numeric(df['value'], errors='coerce').dropna()
@@ -314,29 +311,26 @@ def create_station_overview(nearby_stations_df):
                     clean_values = remove_outliers(values)
                     if not clean_values.empty:
                         if sensor_key == 'soil_moisture_20':
-                            soil_moisture_min_20 = f"{clean_values.min():.1f}%"
+                            soil_moisture_min_20 = f"{clean_values.min():.1f}"  # Remove % symbol
                         elif sensor_key == 'soil_moisture_40':
-                            soil_moisture_min_40 = f"{clean_values.min():.1f}%"
+                            soil_moisture_min_40 = f"{clean_values.min():.1f}"  # Remove % symbol
                         elif sensor_key == 'soil_temp_20':
-                            # Convert Fahrenheit to Celsius: (°F - 32) × 5/9
                             temp_f = clean_values.max()
                             temp_c = (temp_f - 32) * 5/9
-                            soil_temp_max_20 = f"{temp_c:.1f}°C"
+                            soil_temp_max_20 = f"{temp_c:.1f}"  # Remove °C symbol
                         elif sensor_key == 'soil_temp_40':
-                            # Convert Fahrenheit to Celsius: (°F - 32) × 5/9
                             temp_f = clean_values.max()
                             temp_c = (temp_f - 32) * 5/9
-                            soil_temp_max_40 = f"{temp_c:.1f}°C"
+                            soil_temp_max_40 = f"{temp_c:.1f}"  # Remove °C symbol
                         elif sensor_key == 'air_temp_max':
-                            # Convert Fahrenheit to Celsius: (°F - 32) × 5/9
                             temp_f = clean_values.max()
                             temp_c = (temp_f - 32) * 5/9
-                            ambient_temp_max = f"{temp_c:.1f}°C"
+                            ambient_temp_max = f"{temp_c:.1f}"  # Remove °C symbol
         
         overview_data.append({
             'SCAN Site': station_name,
-            'Elevation': station['Elevation'],
-            'Distance to Installation (Miles)': station['Distance to Installation'],
+            'Elevation': station['Elevation'].replace(' ft', '') if station['Elevation'] != 'N/A' else 'N/A',  # Remove ' ft'
+            'Distance to Installation (Miles)': station['Distance to Installation (Miles)'],
             'Soil Moisture Minimum 20in': soil_moisture_min_20,
             'Soil Moisture Minimum 40in': soil_moisture_min_40,
             'Soil Temp Maximum 20in': soil_temp_max_20,
@@ -346,6 +340,7 @@ def create_station_overview(nearby_stations_df):
         
         progress_bar.progress((i + 1) / len(nearby_stations_df))
     
+    status_text.text("Complete!")
     progress_bar.empty()
     
     return pd.DataFrame(overview_data)
@@ -727,6 +722,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

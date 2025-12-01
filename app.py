@@ -238,7 +238,7 @@ def get_station_sensor_data(station_triplet: str):
     sensor_dataframes = {}
     
     end_date = datetime.now().strftime('%Y-%m-%d')
-    begin_date = (datetime.now() - timedelta(days=5*365)).strftime('%Y-%m-%d')
+    begin_date = (datetime.now() - timedelta(days=15*365)).strftime('%Y-%m-%d')
     
     for sensor_key, element_code in sensors.items():
         encoded_station = station_triplet.replace(':', '%3A')
@@ -727,6 +727,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

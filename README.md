@@ -41,10 +41,3 @@ The SCAN Site Analyzer helps farmers, researchers, and environmental professiona
 ### Prerequisites
 - Python 3.8 or higher
 - pip package manager
-
-### Local Development
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/scan-site-analyzer.git
-   cd scan-site-analyzer

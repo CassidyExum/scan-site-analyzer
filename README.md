@@ -130,6 +130,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Created By
 
-**[Cassidy Exum]**  
+**Cassidy Exum**  
 *BESS Engineering*  
-*RRC International*
+*RRC Power and Energy*

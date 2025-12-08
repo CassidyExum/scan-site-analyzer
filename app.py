@@ -238,7 +238,7 @@ def get_station_sensor_data(station_triplet: str):
     sensor_dataframes = {}
     
     end_date = datetime.now().strftime('%Y-%m-%d')
-    begin_date = (datetime.now() - timedelta(days=15*365)).strftime('%Y-%m-%d')
+    begin_date = (datetime.now() - timedelta(days=5*365)).strftime('%Y-%m-%d')
     
     for sensor_key, element_code in sensors.items():
         encoded_station = station_triplet.replace(':', '%3A')
@@ -255,13 +255,35 @@ def get_station_sensor_data(station_triplet: str):
                f"&returnSuspectData=false"
                f"&format=json")
         
-        response = requests.get(url, timeout=120)
-        
-        if response.status_code == 200:
-            data = response.json()
-            values = data[0]['data'][0]['values']
-            df = pd.DataFrame(values)
-            sensor_dataframes[sensor_key] = df
+        try:
+            response = requests.get(url, timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if response has expected structure
+                if isinstance(data, list) and len(data) > 0:
+                    if 'data' in data[0] and isinstance(data[0]['data'], list) and len(data[0]['data']) > 0:
+                        if 'values' in data[0]['data'][0]:
+                            values = data[0]['data'][0]['values']
+                            df = pd.DataFrame(values)
+                            sensor_dataframes[sensor_key] = df
+                        else:
+                            # No values in response
+                            sensor_dataframes[sensor_key] = pd.DataFrame()
+                    else:
+                        # No data array in response
+                        sensor_dataframes[sensor_key] = pd.DataFrame()
+                else:
+                    # Empty or invalid response
+                    sensor_dataframes[sensor_key] = pd.DataFrame()
+            else:
+                # API returned error status
+                sensor_dataframes[sensor_key] = pd.DataFrame()
+                
+        except (requests.RequestException, KeyError, IndexError, ValueError) as e:
+            # Handle any exceptions gracefully
+            sensor_dataframes[sensor_key] = pd.DataFrame()
     
     return sensor_dataframes
 
@@ -722,3 +744,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

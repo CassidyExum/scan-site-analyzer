@@ -256,7 +256,7 @@ def get_station_sensor_data(station_triplet: str):
                f"&format=json")
         
         try:
-            response = requests.get(url, timeout=15)
+            response = requests.get(url, timeout=120)
             
             if response.status_code == 200:
                 data = response.json()
@@ -746,6 +746,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
